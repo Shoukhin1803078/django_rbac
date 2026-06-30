@@ -1,0 +1,49 @@
+services:
+  db:
+    container_name: db-container
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes: 
+      - postgres_data:/var/lib/postgresql/data                    # Docker Managed Storage ↔ Container Database Folder ✅ database persistence
+   
+    networks:
+      - app-network
+
+
+  web:
+    container_name: web-container
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app                                                     # My Local Folder ↔ Container Folder  ✅ development ✅ live coding ✅ auto sync ✅ code changes reflected instantly
+    depends_on:
+      db:
+        condition: service_healthy
+    # command: >
+    #   sh -c "
+    #   python manage.py migrate &&
+    #   python manage.py runserver 0.0.0.0:8000
+    #   "
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+
+
+networks:
+  app-network:
+    driver: bridge
