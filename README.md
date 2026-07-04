@@ -17,7 +17,7 @@
     - এন্ড-টু-এন্ড সব এন্ডপয়েন্ট এবং রাউট কনফিগারেশন।
 7. **পোস্টম্যান (Postman) টেস্টিং গাইড:**
     - আপনার দেওয়া ক্রেডেনশিয়ালস (`alamin@example.com`) ব্যবহার করে কীভাবে ধাপে ধাপে রেজিস্ট্রেশন, লগইন, ড্যাশবোর্ড অ্যাক্সেস এবং লগআউট টেস্ট করবেন তার সচিত্র গাইড।
-    
+
 ---
 
 ## সূচিপত্র (Table of Contents)
@@ -343,3 +343,213 @@ urlpatterns = [
 
 ---
 **অভিনন্দন!** আপনি সফলভাবে Django REST Framework-এ একটি সম্পূর্ণ রোল-বেসড অ্যাক্সেস কন্ট্রোল (RBAC) সিস্টেম তৈরি করে ফেলেছেন।
+
+
+---
+### **Test on Postman:**
+
+> give me all endpoint  for testing in postman step by step:
+> 
+
+> {
+"email": "alamin@example.com",
+"username": "alamin",
+"password": "Test@123",
+"role": "student"
+}
+> 
+
+আপনার দেওয়া ক্রেডেনশিয়ালস (`alamin@example.com`) ব্যবহার করে Postman-এ কীভাবে সবগুলো এন্ডপয়েন্ট ধাপে ধাপে টেস্ট করবেন, তার একটি সহজ গাইড নিচে দেওয়া হলো।
+
+ধরে নিচ্ছি আপনার লোকাল সার্ভারটি **`http://127.0.0.1:8000`** পোর্টে রান করছে। তাই আমাদের সব ইউআরএল-এর শুরুতে এটি থাকবে।
+
+---
+
+### **📌 বেস ইউআরএল (Base URL):**
+
+`http://127.0.0.1:8000/api/accounts/`
+
+---
+
+### **🛠️ ধাপে ধাপে পোস্টম্যান টেস্টিং গাইড (Step-by-Step Postman Guide)**
+
+#### **ধাপ ১: নতুন ইউজার রেজিস্ট্রেশন (Sign Up)**
+
+প্রথমে আমরা আপনার দেওয়া তথ্য দিয়ে একটি নতুন `student` অ্যাকাউন্ট তৈরি করব।
+
+- **URL:** `http://127.0.0.1:8000/api/accounts/signup/`
+- **Method:** `POST`
+- **Headers:**
+    - `Content-Type`: `application/json`
+- **Body (Select `raw` and `JSON` in Postman):**
+    
+    ```python
+    {
+        "email": "alamin@example.com",
+        "username": "alamin",
+        "password": "Test@123",
+        "role": "student"
+    }
+    ```
+    
+- **Expected Response (201 Created):**
+    
+    ```python
+    {
+        "message": "User created successfully"
+    }
+    ```
+    
+
+---
+
+#### **ধাপ ২: লগইন করে টোকেন নেওয়া (Login / Get Token)**
+
+ইউজার তৈরি হয়ে গেলে, এবার লগইন করে আমরা JWT `access` এবং `refresh` টোকেন সংগ্রহ করব।
+
+- **URL:** `http://127.0.0.1:8000/api/accounts/login/`
+- **Method:** `POST`
+- **Headers:**
+    - `Content-Type`: `application/json`
+- **Body (Select `raw` and `JSON`):**
+    
+    ```python
+    {
+        "email": "alamin@example.com",
+        "password": "Test@123"
+    }
+    ```
+    
+- **Expected Response (200 OK):**
+    
+    ```python
+    {
+        "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+        "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    }
+    ```
+    
+
+> ⚠️ **গুরুত্বপূর্ণ কাজ:** রেসপন্স থেকে `access` এবং `refresh` টোকেন দুটি কপি করে আলাদা কোথাও রাখুন। পরবর্তী ধাপগুলোতে এগুলো লাগবে।
+> 
+
+---
+
+#### **ধাপ ৩: রোল-বেসড অথরাইজেশন পরীক্ষা (Testing Dashboards)**
+
+যেহেতু আপনি **`student`** রোল দিয়ে অ্যাকাউন্ট তৈরি করেছেন, তাই আপনি শুধুমাত্র স্টুডেন্ট ড্যাশবোর্ডে ঢুকতে পারবেন। অন্যগুলোতে ঢুকতে গেলে এরর আসবে।
+
+#### **ক) স্টুডেন্ট ড্যাশবোর্ড টেস্ট (অনুমতি আছে - Success)**
+
+- **URL:** `http://127.0.0.1:8000/api/accounts/dashboard/student/`
+- **Method:** `GET`
+- **Headers/Authorization (Postman-এ যেভাবে সেট করবেন):**
+    - Postman-এর **`Authorization`** ট্যাবে যান।
+    - **Type** সিলেক্ট করুন: `Bearer Token`
+    - **Token** বক্সে আপনার কপি করা `access` টোকেনটি পেস্ট করুন।
+- **Expected Response (200 OK):**
+    
+    ```python
+    {
+        "message": "Welcome to the Student Dashboard!",
+        "user": "alamin@example.com",
+        "role": "student"
+    }
+    ```
+    
+
+#### **খ) অ্যাডমিন ড্যাশবোর্ড টেস্ট (অনুমতি নেই - Blocked)**
+
+- **URL:** `http://127.0.0.1:8000/api/accounts/dashboard/admin/`
+- **Method:** `GET`
+- **Authorization:** `Bearer Token` (একই access টোকেন ব্যবহার করুন)
+- **Expected Response (403 Forbidden):***(ব্যাখ্যা: যেহেতু আপনার রোল `student`, তাই আপনি অ্যাডমিন ড্যাশবোর্ডে অ্যাক্সেস পাবেন না)*
+    
+    ```python
+    {
+        "detail": "You do not have permission to perform this action."
+    }
+    ```
+    
+
+#### **গ) ইউজার ড্যাশবোর্ড টেস্ট (অনুমতি নেই - Blocked)**
+
+- **URL:** `http://127.0.0.1:8000/api/accounts/dashboard/user/`
+- **Method:** `GET`
+- **Authorization:** `Bearer Token` (একই access টোকেন ব্যবহার করুন)
+- **Expected Response (403 Forbidden):**
+    
+    ```python
+    {
+        "detail": "You do not have permission to perform this action."
+    }
+    ```
+    
+
+---
+
+#### **ধাপ ৪: টোকেন রিফ্রেশ করা (Token Refresh)**
+
+সাধারণত `access` টোকেনের মেয়াদ অল্প সময় (যেমন ৫ মিনিট) থাকে। মেয়াদ শেষ হয়ে গেলে নতুন `access` টোকেন পাওয়ার জন্য `refresh` টোকেন ব্যবহার করতে হয়।
+
+- **URL:** `http://127.0.0.1:8000/api/accounts/refresh/`
+- **Method:** `POST`
+- **Headers:**
+    - `Content-Type`: `application/json`
+- **Body (Select `raw` and `JSON`):**
+    
+    ```python
+    {
+        "refresh": "<ধাপ ২ থেকে কপি করা refresh টোকেনটি এখানে বসান>"
+    }
+    ```
+    
+- **Expected Response (200 OK):***(এখন থেকে পরবর্তী রিকোয়েস্টগুলোতে এই নতুন `access` টোকেনটি ব্যবহার করতে হবে)*
+    
+    ```python
+    {
+        "access": "<নতুন জেনারেট হওয়া access টোকেন>"
+    }
+    ```
+    
+
+---
+
+#### **ধাপ ৫: লগআউট করা (Logout / Blacklist Token)**
+
+লগআউট করার মাধ্যমে আমরা `refresh` টোকেনটিকে ব্ল্যাকলিস্ট (নিষ্ক্রিয়) করে দেব, যাতে সেটি দিয়ে আর নতুন কোনো অ্যাক্সেস টোকেন নেওয়া না যায়।
+
+- **URL:** `http://127.0.0.1:8000/api/accounts/logout/`
+- **Method:** `POST`
+- **Headers:**
+    - `Content-Type`: `application/json`
+- **Body (Select `raw` and `JSON`):**
+    
+    ```python
+    {
+        "refresh": "<ধাপ ২ বা ৪ থেকে কপি করা refresh টোকেনটি এখানে বসান>"
+    }
+    ```
+    
+- **Expected Response (200 OK):**
+    
+    ```python
+    {
+        "message": "Logout successful"
+    }
+    ```
+    
+
+---
+
+### **💡 বোনাস টিপস:**
+
+আপনি যদি কোনো টোকেন ছাড়া সরাসরি ড্যাশবোর্ড এন্ডপয়েন্টগুলো (যেমন: `/dashboard/student/`) কল করেন, তবে Postman-এ **`401 Unauthorized`** এরর পাবেন:
+
+```python
+{
+    "detail": "Authentication credentials were not provided."
+}
+```
+
+এর মানে হলো আপনার অথেনটিকেশন সিস্টেমটি চমৎকারভাবে কাজ করছে! কোনো ধাপে সমস্যা হলে অবশ্যই জানাবেন।
