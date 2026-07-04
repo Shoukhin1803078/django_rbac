@@ -6,6 +6,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from .serializers import SignUpSerializer
 from django.http import JsonResponse
+from rest_framework.permissions import IsAuthenticated
+from .permissions import IsAdminRole, IsUserRole, IsStudentRole
 
 
 
@@ -56,3 +58,36 @@ class LogoutView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
+
+
+class AdminDashboardView(APIView):
+    permission_classes = [IsAdminRole]
+
+    def get(self, request):
+        return Response({
+            "message": "Welcome to the Admin Dashboard!",
+            "user": request.user.email,
+            "role": request.user.role
+        }, status=status.HTTP_200_OK)
+
+
+class UserDashboardView(APIView):
+    permission_classes = [IsUserRole]
+
+    def get(self, request):
+        return Response({
+            "message": "Welcome to the User Dashboard!",
+            "user": request.user.email,
+            "role": request.user.role
+        }, status=status.HTTP_200_OK)
+
+
+class StudentDashboardView(APIView):
+    permission_classes = [IsStudentRole]
+
+    def get(self, request):
+        return Response({
+            "message": "Welcome to the Student Dashboard!",
+            "user": request.user.email,
+            "role": request.user.role
+        }, status=status.HTTP_200_OK)

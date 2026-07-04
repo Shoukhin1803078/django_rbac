@@ -1,4 +1,3 @@
-# django_rbac
 # Django REST Framework (DRF) দিয়ে রোল-বেসড অ্যাক্সেস কন্ট্রোল (RBAC) গাইড
 
 এই গাইডে আমরা Django REST Framework এবং SimpleJWT ব্যবহার করে একটি সম্পূর্ণ **Role-Based Access Control (RBAC)** বা রোল-বেসড অথরাইজেশন সিস্টেম তৈরির পুরো কোড এবং কাজের ধাপগুলো ধাপে ধাপে আলোচনা করব।
